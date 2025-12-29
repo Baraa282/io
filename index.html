@@ -55,9 +55,9 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(0, 0, 0, 0.6);
+            color: #000000;
             font-size: 16px;
-            font-weight: 400;
+            font-weight: 600;
             text-align: center;
             z-index: 5;
             pointer-events: none;
@@ -301,9 +301,11 @@
                     isDragging = false;
                     const diffX = startX - e.clientX;
                     if (Math.abs(diffX) > this.minSwipeDistance) {
-                        if (diffX > 0) {
+                        if (diffX < 0) {
+                            // Drag right - go forward (1->2->3...)
                             this.goToNextPage();
                         } else {
+                            // Drag left - go backward (1->604->603...)
                             this.goToPreviousPage();
                         }
                     }
@@ -325,11 +327,11 @@
                 const swipeDistance = this.touchStartX - this.touchEndX;
 
                 if (Math.abs(swipeDistance) > this.minSwipeDistance) {
-                    if (swipeDistance > 0) {
-                        // Swipe left - next page
+                    if (swipeDistance < 0) {
+                        // Swipe right - go forward (1->2->3...)
                         this.goToNextPage();
                     } else {
-                        // Swipe right - previous page
+                        // Swipe left - go backward (1->604->603...)
                         this.goToPreviousPage();
                     }
                 }

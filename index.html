@@ -50,6 +50,26 @@
             transition: opacity 0.3s ease;
         }
 
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 16px;
+            font-weight: 400;
+            text-align: center;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .page-number {
+                bottom: 15px;
+                font-size: 14px;
+            }
+        }
+
         .loading {
             opacity: 0.5;
         }
@@ -215,6 +235,7 @@
                 display: none;
             }
         }
+
     </style>
 </head>
 <body>
@@ -223,6 +244,7 @@
         <div class="progress-bar" id="progressBar"></div>
         <div class="page-container" id="pageContainer">
             <img id="pageImage" class="page-image" src="" alt="Page">
+            <div class="page-number" id="pageNumber">1</div>
         </div>
     </div>
 
@@ -239,6 +261,7 @@
                 this.pageImage = document.getElementById('pageImage');
                 this.progressBar = document.getElementById('progressBar');
                 this.pageContainer = document.getElementById('pageContainer');
+                this.pageNumber = document.getElementById('pageNumber');
 
                 this.init();
             }
@@ -246,7 +269,7 @@
             init() {
                 this.loadPage(this.currentPage);
 
-                // Touch events
+                // Touch events for swiping
                 this.pageContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
                 this.pageContainer.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
 
@@ -327,6 +350,7 @@
                     this.pageImage.src = imagePath;
                     this.pageImage.classList.remove('loading');
                     this.currentPage = pageNumber;
+                    this.pageNumber.textContent = pageNumber;
                     this.updateProgress();
                     this.isLoading = false;
                 };

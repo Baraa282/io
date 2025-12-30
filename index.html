@@ -385,6 +385,48 @@
             opacity: 0.5;
         }
 
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.15);
+            margin: 0 12px;
+        }
+
+        .header-bookmark-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            margin-left: 8px;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .header-bookmark-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+        }
+
+        .header-bookmark-btn.active {
+            color: #e57373;
+        }
+
+        .header-bookmark-btn.active svg {
+            fill: #e57373;
+            stroke: #e57373;
+        }
+
+        .header-bookmark-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.2s;
+        }
+
         @media (max-width: 768px) {
             .header-bar {
                 height: 45px;
@@ -715,13 +757,20 @@
         <div class="header-bar">
             <div class="header-section left">
                 <span class="header-text" id="surahName">سورة الفاتحة</span>
+                <span class="header-divider"></span>
                 <div class="surah-dropdown" id="surahDropdown"></div>
             </div>
             <div class="header-section center">
                 <span class="header-number" id="pageNumberHeader">١</span>
             </div>
             <div class="header-section right">
+                <span class="header-divider"></span>
                 <span class="header-text" id="juzNumber">الجزء ١</span>
+                <button class="header-bookmark-btn" id="headerBookmarkBtn" title="Bookmark this page">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </button>
             </div>
         </div>
         
@@ -1148,6 +1197,22 @@
                 
                 // Update juz number in Eastern Arabic
                 this.juzNumber.textContent = `الجزء ${this.toEasternArabic(juzNum)}`;
+                
+                // Update bookmark icon state
+                this.updateHeaderBookmarkIcon();
+            }
+
+            updateHeaderBookmarkIcon() {
+                const bookmarkBtn = document.getElementById('headerBookmarkBtn');
+                if (bookmarkBtn) {
+                    // Check if page is bookmarked
+                    const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                    if (bookmarks.includes(this.currentPage)) {
+                        bookmarkBtn.classList.add('active');
+                    } else {
+                        bookmarkBtn.classList.remove('active');
+                    }
+                }
             }
 
             async init() {
@@ -1167,6 +1232,33 @@
                         this.surahDropdown.classList.remove('active');
                     }
                 });
+
+                // Header bookmark button
+                const headerBookmarkBtn = document.getElementById('headerBookmarkBtn');
+                if (headerBookmarkBtn) {
+                    headerBookmarkBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Simple bookmark toggle - if bookmark methods exist, use them
+                        if (typeof this.toggleBookmark === 'function') {
+                            this.toggleBookmark(this.currentPage);
+                            this.updateHeaderBookmarkIcon();
+                        } else {
+                            // Fallback: store in localStorage
+                            const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                            const index = bookmarks.indexOf(this.currentPage);
+                            if (index > -1) {
+                                bookmarks.splice(index, 1);
+                                headerBookmarkBtn.classList.remove('active');
+                            } else {
+                                bookmarks.push(this.currentPage);
+                                bookmarks.sort((a, b) => a - b);
+                                headerBookmarkBtn.classList.add('active');
+                            }
+                            localStorage.setItem('quranBookmarks', JSON.stringify(bookmarks));
+                        }
+                    });
+                }
 
                 // Recalculate overlay positions on window resize
                 window.addEventListener('resize', () => {

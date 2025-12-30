@@ -541,26 +541,11 @@
         }
 
         .nav-info {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 0;
-            opacity: 0;
-            transition: 
-                width .2s ease-in-out 0s, 
-                opacity .2s ease-in-out 0s;
-            overflow: hidden;
+            display: none;
         }
 
         .nav-info > span {
-            padding: .2em .8em;
-            pointer-events: none;
-            -webkit-transform: translateX(.725rem);
-            transform: translateX(.725rem);
-            transition: transform 1.2s ease;
-            white-space: nowrap;
-            color: var(--c-i);
-            font-size: 0.9em;
+            display: none;
         }
 
         /* Extra Small Devices (phones, less than 360px) */
@@ -737,6 +722,158 @@
             }
         }
 
+        /* Bookmark Page */
+        .bookmark-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #F0EAD6;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .bookmark-page.active {
+            display: flex;
+        }
+
+        .bookmark-page.active ~ .container {
+            display: none;
+        }
+
+        .bookmark-content {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bookmark-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F0EAD6;
+        }
+
+        .bookmark-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+            direction: rtl;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+        }
+
+        .bookmark-close {
+            background: rgba(138, 154, 91, 0.1);
+            border: none;
+            cursor: pointer;
+            color: #333;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .bookmark-close:hover {
+            background: rgba(138, 154, 91, 0.2);
+        }
+
+        .bookmark-close svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .bookmark-list {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .bookmark-item {
+            padding: 12px 16px;
+            margin: 4px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+            direction: rtl;
+        }
+
+        .bookmark-item:hover {
+            background: rgba(138, 154, 91, 0.1);
+        }
+
+        .bookmark-item-info {
+            flex: 1;
+        }
+
+        .bookmark-item-name {
+            font-weight: 500;
+            color: #333;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .bookmark-item-page {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .bookmark-item-remove {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .bookmark-item-remove:hover {
+            color: #e57373;
+            background: rgba(229, 115, 115, 0.1);
+        }
+
+        .bookmark-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+            direction: rtl;
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-header {
+                padding: 16px;
+            }
+
+            .bookmark-header h3 {
+                font-size: 20px;
+            }
+
+            .bookmark-list {
+                padding: 15px;
+            }
+        }
+
         /* Touch device optimizations */
         @media (hover: none) and (pointer: coarse) {
             .nav-buttons li a {
@@ -830,7 +967,7 @@
                         <span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
                                 <path fill="none" d="M0 0h24v24H0V0z"/>
-                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
                             </svg>
                         </span>
                     </a>
@@ -857,6 +994,23 @@
             </ul>
         </div>
     </nav>
+
+    <!-- Bookmark Page -->
+    <div class="bookmark-page" id="bookmarkPage">
+        <div class="bookmark-content">
+            <div class="bookmark-header">
+                <h3>الصفحات المفضلة</h3>
+                <button class="bookmark-close" id="bookmarkClose" title="Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="bookmark-list" id="bookmarkList">
+                <!-- Bookmarked pages will be listed here -->
+            </div>
+        </div>
+    </div>
 
     <script src="quran-data.js"></script>
     <script>
@@ -1215,6 +1369,85 @@
                 }
             }
 
+            renderBookmarks() {
+                const bookmarkList = document.getElementById('bookmarkList');
+                if (!bookmarkList) return;
+
+                const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                
+                if (bookmarks.length === 0) {
+                    bookmarkList.innerHTML = '<div class="bookmark-empty">لا توجد صفحات مفضلة</div>';
+                    return;
+                }
+
+                bookmarkList.innerHTML = bookmarks.map(pageNum => {
+                    const surahNum = this.getSurahForPage(pageNum);
+                    const surahName = QuranData.Sura && QuranData.Sura[surahNum] 
+                        ? QuranData.Sura[surahNum][4] 
+                        : `سورة ${surahNum}`;
+                    
+                    return `
+                        <div class="bookmark-item" data-page="${pageNum}">
+                            <div class="bookmark-item-info">
+                                <div class="bookmark-item-name">${surahName}</div>
+                                <div class="bookmark-item-page">الصفحة ${this.toEasternArabic(pageNum)}</div>
+                            </div>
+                            <button class="bookmark-item-remove" data-page="${pageNum}">&times;</button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers
+                bookmarkList.querySelectorAll('.bookmark-item').forEach(item => {
+                    const pageNum = parseInt(item.dataset.page);
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('bookmark-item-remove')) {
+                            this.loadPage(pageNum);
+                            this.closeBookmarkModal();
+                        }
+                    });
+                });
+
+                // Add remove handlers
+                bookmarkList.querySelectorAll('.bookmark-item-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const pageNum = parseInt(btn.dataset.page);
+                        const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                        const index = bookmarks.indexOf(pageNum);
+                        if (index > -1) {
+                            bookmarks.splice(index, 1);
+                            localStorage.setItem('quranBookmarks', JSON.stringify(bookmarks));
+                            this.renderBookmarks();
+                            this.updateHeaderBookmarkIcon();
+                        }
+                    });
+                });
+            }
+
+            openBookmarkModal() {
+                const bookmarkPage = document.getElementById('bookmarkPage');
+                const container = document.querySelector('.container');
+                if (bookmarkPage) {
+                    this.renderBookmarks();
+                    bookmarkPage.classList.add('active');
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                }
+            }
+
+            closeBookmarkModal() {
+                const bookmarkPage = document.getElementById('bookmarkPage');
+                const container = document.querySelector('.container');
+                if (bookmarkPage) {
+                    bookmarkPage.classList.remove('active');
+                    if (container) {
+                        container.style.display = 'flex';
+                    }
+                }
+            }
+
             async init() {
                 await this.loadAyahPositions();
                 this.populateSurahDropdown();
@@ -1310,6 +1543,13 @@
                 });
 
                 this.updateProgress();
+
+                // Close bookmark modal with Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeBookmarkModal();
+                    }
+                });
             }
 
             handleTouchStart(e) {
@@ -1452,33 +1692,7 @@
             // Wait for jQuery to be available
             if (typeof jQuery !== 'undefined') {
                 jQuery(document).ready(function($) {
-                    // Label animation
-                    $("a[data-tab]").on({
-                        'mouseover': function(){
-                            var dT = $(this).attr("data-tab");
-                            $(".nav-info span").text(dT);
-                            $(".nav-info").css({
-                                "width": "6.85em",
-                                "opacity": "1",
-                                "transition": "width .2s ease-in-out 0s, opacity .2s ease-in-out 0s"
-                            });
-                            $(".nav-info span").css({
-                                "-webkit-transform": "translateX(0)",
-                                "transform": "translateX(0)"
-                            });
-                        },
-                        'mouseout': function(){
-                            $(".nav-info").css({
-                                "width": "0",
-                                "opacity": "0",
-                                "transition": "width .6s ease-in-out .4s, opacity .2s ease-in-out .4s"
-                            });
-                            $(".nav-info span").css({
-                                "-webkit-transform": "translateX(.725rem)",
-                                "transform": "translateX(.725rem)"
-                            });
-                        }
-                    });
+                    // Label animation removed - no hover text effect
 
                     // Play/Pause toggle
                     $("#play-pause").click(function(e){
@@ -1506,8 +1720,19 @@
 
                     $("#navFavorite").click(function(e){
                         e.preventDefault();
-                        // Add favorite functionality here
+                        if (quranViewer) {
+                            quranViewer.openBookmarkModal();
+                        }
                     });
+
+                    // Close bookmark modal
+                    $("#bookmarkClose").click(function(e){
+                        e.preventDefault();
+                        if (quranViewer) {
+                            quranViewer.closeBookmarkModal();
+                        }
+                    });
+
                 });
             } else {
                 // Fallback if jQuery is not loaded - use vanilla JS
@@ -1517,6 +1742,23 @@
                         quranViewer.togglePlayPause();
                     }
                 });
+
+                // Bookmark button fallback
+                document.getElementById('navFavorite')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (quranViewer) {
+                        quranViewer.openBookmarkModal();
+                    }
+                });
+
+                // Close bookmark modal fallback
+                document.getElementById('bookmarkClose')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (quranViewer) {
+                        quranViewer.closeBookmarkModal();
+                    }
+                });
+
             }
         });
     </script>

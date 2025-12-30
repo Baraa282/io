@@ -557,10 +557,18 @@
                 // Clear existing overlays
                 this.ayahOverlayContainer.innerHTML = '';
 
-                // Only create overlays for page 1
-                if (this.currentPage !== 1 || !this.ayahPositions || this.ayahPositions.page !== 1) {
+                // Find page data from array
+                if (!this.ayahPositions || !Array.isArray(this.ayahPositions)) {
                     return;
                 }
+
+                const pageData = this.ayahPositions.find(p => p.page === this.currentPage);
+                if (!pageData) {
+                    return;
+                }
+
+                // Get surah number for current page
+                const surahNumber = this.getSurahForPage(this.currentPage);
 
                 // Wait for image to be fully rendered
                 setTimeout(() => {
@@ -586,7 +594,7 @@
                     const offsetY = imgRect.top - containerRect.top;
 
                     // Create overlays for each ayah
-                    this.ayahPositions.ayahs.forEach(ayah => {
+                    pageData.ayahs.forEach(ayah => {
                         ayah.parts.forEach((part, partIndex) => {
                             const overlay = document.createElement('div');
                             overlay.className = 'ayah-highlight';
@@ -597,10 +605,39 @@
                             overlay.style.width = `${part.w * scaleX}px`;
                             overlay.style.height = `${part.h * scaleY}px`;
                             
-                            // Add click handler to play audio
-                            overlay.addEventListener('click', () => {
-                                this.playAyahAudio(1, ayah.aya);
-                            });
+                            // Function to play audio
+                            const playAudio = () => {
+                                this.playAyahAudio(surahNumber, ayah.aya);
+                            };
+                            
+                            // Add click handler for desktop
+                            overlay.addEventListener('click', playAudio);
+                            
+                            // Add touch handlers for mobile
+                            let touchStartTime = 0;
+                            let touchStartY = 0;
+                            
+                            overlay.addEventListener('touchstart', (e) => {
+                                touchStartTime = Date.now();
+                                touchStartY = e.touches[0].clientY;
+                                // Prevent swipe navigation when touching an ayah
+                                e.stopPropagation();
+                            }, { passive: true });
+                            
+                            overlay.addEventListener('touchend', (e) => {
+                                const touchEndTime = Date.now();
+                                const touchDuration = touchEndTime - touchStartTime;
+                                const touchEndY = e.changedTouches[0].clientY;
+                                const verticalMovement = Math.abs(touchEndY - touchStartY);
+                                
+                                // Only play audio if it was a quick tap (not a swipe)
+                                // and vertical movement is minimal (to distinguish from scroll)
+                                if (touchDuration < 300 && verticalMovement < 10) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    playAudio();
+                                }
+                            }, { passive: false });
                             
                             this.ayahOverlayContainer.appendChild(overlay);
                         });
@@ -712,10 +749,28 @@
             }
 
             handleTouchStart(e) {
+                // Check if touch started on an ayah overlay
+                const target = e.target;
+                if (target && target.classList.contains('ayah-highlight')) {
+                    // Don't track swipe if touching an ayah
+                    this.touchStartX = null;
+                    return;
+                }
                 this.touchStartX = e.changedTouches[0].screenX;
             }
 
             handleTouchEnd(e) {
+                // Check if touch ended on an ayah overlay
+                const target = e.target;
+                if (target && target.classList.contains('ayah-highlight')) {
+                    // Don't trigger swipe if touching an ayah
+                    return;
+                }
+                
+                if (this.touchStartX === null) {
+                    return;
+                }
+                
                 this.touchEndX = e.changedTouches[0].screenX;
                 this.handleSwipe();
             }

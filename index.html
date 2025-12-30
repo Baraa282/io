@@ -442,6 +442,8 @@
                 this.ayahOverlayContainer = document.getElementById('ayahOverlayContainer');
                 this.ayahPositions = null;
                 this.currentAudio = null;
+                this.currentPlayingSurah = null;
+                this.currentPlayingAyah = null;
 
                 this.init();
             }
@@ -646,6 +648,18 @@
             }
 
             playAyahAudio(surahNumber, ayahNumber) {
+                // Check if the same ayah is already playing - if so, stop it
+                if (this.currentAudio && 
+                    this.currentPlayingSurah === surahNumber && 
+                    this.currentPlayingAyah === ayahNumber &&
+                    !this.currentAudio.paused) {
+                    this.currentAudio.pause();
+                    this.currentAudio = null;
+                    this.currentPlayingSurah = null;
+                    this.currentPlayingAyah = null;
+                    return;
+                }
+
                 // Stop any currently playing audio
                 if (this.currentAudio) {
                     this.currentAudio.pause();
@@ -656,8 +670,19 @@
                 const audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
                 
                 this.currentAudio = new Audio(audioUrl);
+                this.currentPlayingSurah = surahNumber;
+                this.currentPlayingAyah = ayahNumber;
+                
+                // Clear tracking when audio ends
+                this.currentAudio.addEventListener('ended', () => {
+                    this.currentPlayingSurah = null;
+                    this.currentPlayingAyah = null;
+                });
+                
                 this.currentAudio.play().catch(error => {
                     console.error('Failed to play audio:', error);
+                    this.currentPlayingSurah = null;
+                    this.currentPlayingAyah = null;
                 });
             }
 

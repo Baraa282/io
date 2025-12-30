@@ -482,12 +482,39 @@
             }
 
             goToSurah(surahNumber) {
-                // Find the first page that starts with this surah
+                // Find the first page that contains this surah
                 for (let page = 1; page <= 604; page++) {
-                    if (QuranData.Page[page] && QuranData.Page[page][0] === surahNumber) {
-                        this.loadPage(page);
-                        return;
+                    if (QuranData.Page[page]) {
+                        const pageSurah = QuranData.Page[page][0];
+                        
+                        // Check if this page starts with the surah
+                        if (pageSurah === surahNumber) {
+                            this.loadPage(page);
+                            return;
+                        }
+                        
+                        // Check if this page contains the surah (page starts with lower surah number)
+                        // and next page starts with higher surah number or doesn't exist
+                        if (pageSurah < surahNumber) {
+                            const nextPage = page + 1;
+                            if (nextPage > 604) {
+                                // Last page - contains the surah
+                                this.loadPage(page);
+                                return;
+                            }
+                            
+                            if (QuranData.Page[nextPage] && QuranData.Page[nextPage][0] > surahNumber) {
+                                // Next page starts with higher surah, so current page contains our surah
+                                this.loadPage(page);
+                                return;
+                            }
+                        }
                     }
+                }
+                
+                // Fallback: if not found, go to last page (for surah 114)
+                if (surahNumber >= 112) {
+                    this.loadPage(604);
                 }
             }
 

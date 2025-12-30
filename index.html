@@ -314,17 +314,16 @@
             position: absolute;
             top: 100%;
             left: 0;
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: #F0EAD6;
+            border-radius: 4px;
             max-height: 400px;
             overflow-y: auto;
             z-index: 100;
             display: none;
-            min-width: 220px;
-            margin-top: 5px;
+            min-width: 200px;
+            margin-top: 4px;
             direction: rtl;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .surah-dropdown.active {
@@ -332,32 +331,28 @@
         }
 
         .surah-dropdown-item {
-            padding: 12px 16px;
+            padding: 8px 12px;
             cursor: pointer;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             direction: rtl;
             text-align: right;
-            transition: background 0.2s;
+            transition: background 0.15s;
             font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
         }
 
         .surah-dropdown-item:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .surah-dropdown-item:last-child {
-            border-bottom: none;
+            background: rgba(138, 154, 91, 0.1);
         }
 
         .surah-item-number {
-            color: #666;
-            font-size: 12px;
-            margin-left: 8px;
+            color: #8A9A5B;
+            font-size: 11px;
+            margin-left: 6px;
         }
 
         .surah-item-name {
             color: #333;
-            font-weight: 500;
+            font-weight: 400;
+            font-size: 14px;
         }
 
         .header-number {
@@ -458,8 +453,13 @@
             }
 
             .surah-dropdown {
-                min-width: 180px;
+                min-width: 160px;
                 max-height: 300px;
+            }
+
+            .surah-dropdown-item {
+                padding: 6px 10px;
+                font-size: 13px;
             }
         }
 

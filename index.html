@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -16,7 +17,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #f1e6e6;
+            background: #f5f1e8;
             overflow: hidden;
             touch-action: pan-y;
             user-select: none;
@@ -257,7 +258,7 @@
             left: 0;
             right: 0;
             height: 50px;
-            background: #f1e6e6;
+            background: #f5f1e8;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -410,6 +411,284 @@
             }
         }
 
+        /* Floating Navigation Bar */
+        :root {
+            --c-bg: #f5f1e8;
+            --c-txt: #9FA8DA;
+            --c-i: #7E57C2;
+            --c-btn: #FFF176;
+        }
+
+        .main-nav {
+            display: flex;
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            font-size: 1rem;
+        }
+
+        .nav-part {
+            display: flex;
+            margin-left: .5rem;
+            background: #FFFFFF;
+            border-radius: 3.4em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            margin: 0;
+            padding: .2em;
+            background: #FFFFFF;
+            border-radius: 3.4em;
+            -webkit-box-shadow: 0 .1em .3em rgba(0,0,0,.1);
+            box-shadow: 0 .1em .3em rgba(0,0,0,.1);
+        }
+
+        .nav-buttons li {
+            margin: .2em;
+            list-style: none;
+        }
+
+        .nav-buttons li a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 2.6em;
+            height: 2.6em;
+            background: #FFFFFF;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .nav-buttons li a:hover {
+            background: var(--c-btn);
+            -webkit-box-shadow: 0 .1em .3em rgba(0,0,0,.25);
+            box-shadow: 0 .1em .3em rgba(0,0,0,.25);
+        }
+
+        .nav-buttons li a:active {
+            -webkit-transform: scale(.95);
+            transform: scale(.95);
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+
+        .nav-icon {
+            fill: var(--c-i);
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-buttons li a:hover .nav-icon {
+            fill: #FFFFFF;
+        }
+
+        .nav-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 0;
+            opacity: 0;
+            transition: 
+                width .2s ease-in-out 0s, 
+                opacity .2s ease-in-out 0s;
+            overflow: hidden;
+        }
+
+        .nav-info > span {
+            padding: .2em .8em;
+            pointer-events: none;
+            -webkit-transform: translateX(.725rem);
+            transform: translateX(.725rem);
+            transition: transform 1.2s ease;
+            white-space: nowrap;
+            color: var(--c-i);
+            font-size: 0.9em;
+        }
+
+        /* Extra Small Devices (phones, less than 360px) */
+        @media screen and (max-width: 359px) {
+            .main-nav {
+                bottom: 0.5rem;
+                right: 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.2em;
+                height: 2.2em;
+            }
+
+            .nav-icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            .nav-part {
+                margin-left: 0.3rem;
+            }
+
+            .nav-buttons {
+                padding: 0.15em;
+            }
+
+            .nav-buttons li {
+                margin: 0.15em;
+            }
+        }
+
+        /* Small Devices (phones, 360px to 480px) */
+        @media screen and (min-width: 360px) and (max-width: 480px) {
+            .main-nav {
+                bottom: 0.6rem;
+                right: 0.6rem;
+                font-size: 0.85rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.4em;
+                height: 2.4em;
+            }
+
+            .nav-icon {
+                width: 22px;
+                height: 22px;
+            }
+
+            .nav-part {
+                margin-left: 0.4rem;
+            }
+        }
+
+        /* Medium Devices (tablets, 481px to 768px) */
+        @media screen and (min-width: 481px) and (max-width: 768px) {
+            .main-nav {
+                bottom: 0.8rem;
+                right: 0.8rem;
+                font-size: 0.95rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.5em;
+                height: 2.5em;
+            }
+
+            .nav-icon {
+                width: 23px;
+                height: 23px;
+            }
+        }
+
+        /* Landscape Orientation for Mobile */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            .main-nav {
+                bottom: 0.4rem;
+                right: 0.4rem;
+                font-size: 0.8rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.2em;
+                height: 2.2em;
+            }
+
+            .nav-icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        /* Large Devices (tablets landscape, 769px to 919px) */
+        @media screen and (min-width: 769px) and (max-width: 919px) {
+            .main-nav {
+                bottom: 1rem;
+                right: 1rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Desktop (920px and up) */
+        @media screen and (min-width: 920px) {
+            .main-nav {
+                bottom: auto;
+                top: 1em;
+                right: 1em;
+                font-size: 1rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.6em;
+                height: 2.6em;
+            }
+
+            .nav-icon {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        /* Large Desktop (1200px and up) */
+        @media screen and (min-width: 1200px) {
+            .main-nav {
+                top: 1.5em;
+                right: 1.5em;
+                font-size: 1.1rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.8em;
+                height: 2.8em;
+            }
+
+            .nav-icon {
+                width: 26px;
+                height: 26px;
+            }
+        }
+
+        /* Extra Large Desktop (1600px and up) */
+        @media screen and (min-width: 1600px) {
+            .main-nav {
+                top: 2em;
+                right: 2em;
+                font-size: 1.2rem;
+            }
+
+            .nav-buttons li a {
+                width: 3em;
+                height: 3em;
+            }
+
+            .nav-icon {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        /* Hide nav info on very small screens to save space */
+        @media screen and (max-width: 480px) {
+            .nav-info {
+                display: none;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-buttons li a {
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .nav-buttons li a:active {
+                background: var(--c-btn);
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -435,6 +714,82 @@
             <div class="ayah-overlay-container" id="ayahOverlayContainer"></div>
         </div>
     </div>
+
+    <!-- Floating Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-part">
+            <!-- Nav info -->
+            <div class="nav-info">
+                <span>{...}</span>
+            </div>
+
+            <!-- Nav buttons -->
+            <ul class="nav-buttons">
+                <li>
+                    <a href="#" data-tab="Book" id="navBook">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" data-tab="Translate" id="navTranslate">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" data-tab="Search" id="navSearch">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" data-tab="Favorite" id="navFavorite">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-part">
+            <ul class="nav-buttons">
+                <li>
+                    <a href="#" id="play-pause" data-tab="Play/Stop">
+                        <span>
+                            <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon" style="display: block;">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon" style="display: none;">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
     <script src="quran-data.js"></script>
     <script>
@@ -712,6 +1067,7 @@
                     this.currentPlayingSurah = null;
                     this.currentPlayingAyah = null;
                     this.clearHighlights(); // Clear highlight when stopping
+                    this.updatePlayPauseIcon(false);
                     return;
                 }
 
@@ -719,6 +1075,7 @@
                 if (this.currentAudio) {
                     this.currentAudio.pause();
                     this.currentAudio = null;
+                    this.updatePlayPauseIcon(false);
                 }
 
                 // Highlight the clicked ayah
@@ -736,6 +1093,17 @@
                     this.currentPlayingSurah = null;
                     this.currentPlayingAyah = null;
                     this.clearHighlights();
+                    this.updatePlayPauseIcon(false);
+                });
+
+                // Update icon when audio starts playing
+                this.currentAudio.addEventListener('play', () => {
+                    this.updatePlayPauseIcon(true);
+                });
+
+                // Update icon when audio is paused
+                this.currentAudio.addEventListener('pause', () => {
+                    this.updatePlayPauseIcon(false);
                 });
                 
                 this.currentAudio.play().catch(error => {
@@ -743,6 +1111,7 @@
                     this.currentPlayingSurah = null;
                     this.currentPlayingAyah = null;
                     this.clearHighlights(); // Clear highlight on error
+                    this.updatePlayPauseIcon(false);
                 });
             }
 
@@ -928,11 +1297,117 @@
                 const progress = (this.currentPage / this.totalPages) * 100;
                 this.progressBar.style.width = `${progress}%`;
             }
+
+            updatePlayPauseIcon(isPlaying) {
+                const playIcon = document.getElementById('playIcon');
+                const pauseIcon = document.getElementById('pauseIcon');
+                if (playIcon && pauseIcon) {
+                    if (isPlaying) {
+                        playIcon.style.display = 'none';
+                        pauseIcon.style.display = 'block';
+                    } else {
+                        playIcon.style.display = 'block';
+                        pauseIcon.style.display = 'none';
+                    }
+                }
+            }
+
+            togglePlayPause() {
+                if (this.currentAudio) {
+                    if (this.currentAudio.paused) {
+                        this.currentAudio.play();
+                        this.updatePlayPauseIcon(true);
+                    } else {
+                        this.currentAudio.pause();
+                        this.updatePlayPauseIcon(false);
+                    }
+                } else {
+                    // If no audio is playing, play the first ayah of current page
+                    const pageData = this.ayahPositions?.find(p => p.page === this.currentPage);
+                    if (pageData && pageData.ayahs && pageData.ayahs.length > 0) {
+                        const surahNumber = pageData.surah || this.getSurahForPage(this.currentPage);
+                        const firstAyah = pageData.ayahs[0].aya;
+                        this.playAyahAudio(surahNumber, firstAyah);
+                    }
+                }
+            }
         }
 
         // Initialize the viewer when the page loads
+        let quranViewer = null;
         document.addEventListener('DOMContentLoaded', () => {
-            new QuranPageViewer();
+            quranViewer = new QuranPageViewer();
+
+            // Floating Navigation Bar JavaScript
+            // Wait for jQuery to be available
+            if (typeof jQuery !== 'undefined') {
+                jQuery(document).ready(function($) {
+                    // Label animation
+                    $("a[data-tab]").on({
+                        'mouseover': function(){
+                            var dT = $(this).attr("data-tab");
+                            $(".nav-info span").text(dT);
+                            $(".nav-info").css({
+                                "width": "6.85em",
+                                "opacity": "1",
+                                "transition": "width .2s ease-in-out 0s, opacity .2s ease-in-out 0s"
+                            });
+                            $(".nav-info span").css({
+                                "-webkit-transform": "translateX(0)",
+                                "transform": "translateX(0)"
+                            });
+                        },
+                        'mouseout': function(){
+                            $(".nav-info").css({
+                                "width": "0",
+                                "opacity": "0",
+                                "transition": "width .6s ease-in-out .4s, opacity .2s ease-in-out .4s"
+                            });
+                            $(".nav-info span").css({
+                                "-webkit-transform": "translateX(.725rem)",
+                                "transform": "translateX(.725rem)"
+                            });
+                        }
+                    });
+
+                    // Play/Pause toggle
+                    $("#play-pause").click(function(e){
+                        e.preventDefault();
+                        if (quranViewer) {
+                            quranViewer.togglePlayPause();
+                        }
+                    });
+
+                    // Other navigation buttons (placeholder for future functionality)
+                    $("#navBook").click(function(e){
+                        e.preventDefault();
+                        // Add book functionality here
+                    });
+
+                    $("#navTranslate").click(function(e){
+                        e.preventDefault();
+                        // Add translate functionality here
+                    });
+
+                    $("#navSearch").click(function(e){
+                        e.preventDefault();
+                        // Add search functionality here
+                    });
+
+                    $("#navFavorite").click(function(e){
+                        e.preventDefault();
+                        // Add favorite functionality here
+                    });
+                });
+            } else {
+                // Fallback if jQuery is not loaded - use vanilla JS
+                document.getElementById('play-pause')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (quranViewer) {
+                        quranViewer.togglePlayPause();
+                    }
+                });
+            }
         });
     </script>
 </body>

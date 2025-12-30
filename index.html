@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quran Pages Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -67,6 +70,11 @@
             border: none;
             pointer-events: all;
             cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .ayah-highlight.active {
+            background: rgba(173, 216, 230, 0.2);
         }
 
 
@@ -278,7 +286,7 @@
             font-size: 16px;
             font-weight: 500;
             direction: rtl;
-            font-family: 'Arial', 'Tahoma', sans-serif;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
             cursor: pointer;
             user-select: none;
             position: relative;
@@ -319,6 +327,7 @@
             direction: rtl;
             text-align: right;
             transition: background 0.2s;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
         }
 
         .surah-dropdown-item:hover {
@@ -345,7 +354,7 @@
             font-size: 18px;
             font-weight: 600;
             direction: rtl;
-            font-family: 'Arial', 'Tahoma', sans-serif;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
         }
 
         .header-arrow {
@@ -444,6 +453,8 @@
                 this.currentAudio = null;
                 this.currentPlayingSurah = null;
                 this.currentPlayingAyah = null;
+                this.currentHighlightedOverlays = []; // Track highlighted overlays
+                this.ayahOverlays = {}; // Store overlays by surah:ayah key
 
                 this.init();
             }
@@ -558,6 +569,8 @@
             createAyahOverlays() {
                 // Clear existing overlays
                 this.ayahOverlayContainer.innerHTML = '';
+                this.ayahOverlays = {}; // Reset overlay references
+                this.clearHighlights(); // Clear any existing highlights
 
                 // Find page data from array
                 if (!this.ayahPositions || !Array.isArray(this.ayahPositions)) {
@@ -570,7 +583,7 @@
                 }
 
                 // Get surah number for current page
-                const surahNumber = this.getSurahForPage(this.currentPage);
+                const surahNumber = pageData.surah || this.getSurahForPage(this.currentPage);
 
                 // Wait for image to be fully rendered
                 setTimeout(() => {
@@ -597,6 +610,11 @@
 
                     // Create overlays for each ayah
                     pageData.ayahs.forEach(ayah => {
+                        const overlayKey = `${surahNumber}:${ayah.aya}`;
+                        if (!this.ayahOverlays[overlayKey]) {
+                            this.ayahOverlays[overlayKey] = [];
+                        }
+                        
                         ayah.parts.forEach((part, partIndex) => {
                             const overlay = document.createElement('div');
                             overlay.className = 'ayah-highlight';
@@ -606,6 +624,9 @@
                             overlay.style.top = `${offsetY + part.y * scaleY}px`;
                             overlay.style.width = `${part.w * scaleX}px`;
                             overlay.style.height = `${part.h * scaleY}px`;
+                            
+                            // Store overlay reference
+                            this.ayahOverlays[overlayKey].push(overlay);
                             
                             // Function to play audio
                             const playAudio = () => {
@@ -647,6 +668,31 @@
                 }, 100);
             }
 
+            clearHighlights() {
+                // Remove active class from all currently highlighted overlays
+                this.currentHighlightedOverlays.forEach(overlay => {
+                    overlay.classList.remove('active');
+                });
+                this.currentHighlightedOverlays = [];
+            }
+
+            highlightAyah(surahNumber, ayahNumber) {
+                // Clear previous highlights
+                this.clearHighlights();
+                
+                // Find overlays for this ayah
+                const overlayKey = `${surahNumber}:${ayahNumber}`;
+                const overlays = this.ayahOverlays[overlayKey];
+                
+                if (overlays && overlays.length > 0) {
+                    // Add active class to all parts of this ayah
+                    overlays.forEach(overlay => {
+                        overlay.classList.add('active');
+                        this.currentHighlightedOverlays.push(overlay);
+                    });
+                }
+            }
+
             playAyahAudio(surahNumber, ayahNumber) {
                 // Check if the same ayah is already playing - if so, stop it
                 if (this.currentAudio && 
@@ -657,6 +703,7 @@
                     this.currentAudio = null;
                     this.currentPlayingSurah = null;
                     this.currentPlayingAyah = null;
+                    this.clearHighlights(); // Clear highlight when stopping
                     return;
                 }
 
@@ -666,6 +713,9 @@
                     this.currentAudio = null;
                 }
 
+                // Highlight the clicked ayah
+                this.highlightAyah(surahNumber, ayahNumber);
+
                 // Play audio from EveryAyah.com API - Alafasy recitation
                 const audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
                 
@@ -673,16 +723,18 @@
                 this.currentPlayingSurah = surahNumber;
                 this.currentPlayingAyah = ayahNumber;
                 
-                // Clear tracking when audio ends
+                // Clear tracking and highlights when audio ends
                 this.currentAudio.addEventListener('ended', () => {
                     this.currentPlayingSurah = null;
                     this.currentPlayingAyah = null;
+                    this.clearHighlights();
                 });
                 
                 this.currentAudio.play().catch(error => {
                     console.error('Failed to play audio:', error);
                     this.currentPlayingSurah = null;
                     this.currentPlayingAyah = null;
+                    this.clearHighlights(); // Clear highlight on error
                 });
             }
 

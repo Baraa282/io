@@ -49,6 +49,26 @@
             transition: opacity 0.3s ease;
         }
 
+        .ayah-overlay-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ayah-highlight {
+            position: absolute;
+            background: transparent;
+            border: none;
+            pointer-events: all;
+            cursor: pointer;
+        }
+
 
         .loading {
             opacity: 0.5;
@@ -397,6 +417,7 @@
         <div class="progress-bar" id="progressBar"></div>
         <div class="page-container" id="pageContainer">
             <img id="pageImage" class="page-image" src="" alt="Page">
+            <div class="ayah-overlay-container" id="ayahOverlayContainer"></div>
         </div>
     </div>
 
@@ -418,6 +439,9 @@
                 this.pageNumberHeader = document.getElementById('pageNumberHeader');
                 this.juzNumber = document.getElementById('juzNumber');
                 this.surahDropdown = document.getElementById('surahDropdown');
+                this.ayahOverlayContainer = document.getElementById('ayahOverlayContainer');
+                this.ayahPositions = null;
+                this.currentAudio = null;
 
                 this.init();
             }
@@ -518,6 +542,88 @@
                 }
             }
 
+            async loadAyahPositions() {
+                try {
+                    const response = await fetch('ayah_position.json');
+                    const data = await response.json();
+                    this.ayahPositions = data;
+                } catch (error) {
+                    console.error('Failed to load ayah positions:', error);
+                    this.ayahPositions = null;
+                }
+            }
+
+            createAyahOverlays() {
+                // Clear existing overlays
+                this.ayahOverlayContainer.innerHTML = '';
+
+                // Only create overlays for page 1
+                if (this.currentPage !== 1 || !this.ayahPositions || this.ayahPositions.page !== 1) {
+                    return;
+                }
+
+                // Wait for image to be fully rendered
+                setTimeout(() => {
+                    const imgRect = this.pageImage.getBoundingClientRect();
+                    const containerRect = this.pageContainer.getBoundingClientRect();
+                    
+                    // Get actual image dimensions
+                    const img = this.pageImage;
+                    const naturalWidth = img.naturalWidth || img.width;
+                    const naturalHeight = img.naturalHeight || img.height;
+                    
+                    // Reference image dimensions (from the JSON coordinates)
+                    // Assuming the JSON coordinates are based on the original image size
+                    const refWidth = naturalWidth;
+                    const refHeight = naturalHeight;
+                    
+                    // Calculate scale factors based on displayed size vs natural size
+                    const scaleX = imgRect.width / refWidth;
+                    const scaleY = imgRect.height / refHeight;
+                    
+                    // Calculate offset (image is centered in container)
+                    const offsetX = imgRect.left - containerRect.left;
+                    const offsetY = imgRect.top - containerRect.top;
+
+                    // Create overlays for each ayah
+                    this.ayahPositions.ayahs.forEach(ayah => {
+                        ayah.parts.forEach((part, partIndex) => {
+                            const overlay = document.createElement('div');
+                            overlay.className = 'ayah-highlight';
+                            
+                            // Scale and position the overlay
+                            overlay.style.left = `${offsetX + part.x * scaleX}px`;
+                            overlay.style.top = `${offsetY + part.y * scaleY}px`;
+                            overlay.style.width = `${part.w * scaleX}px`;
+                            overlay.style.height = `${part.h * scaleY}px`;
+                            
+                            // Add click handler to play audio
+                            overlay.addEventListener('click', () => {
+                                this.playAyahAudio(1, ayah.aya);
+                            });
+                            
+                            this.ayahOverlayContainer.appendChild(overlay);
+                        });
+                    });
+                }, 100);
+            }
+
+            playAyahAudio(surahNumber, ayahNumber) {
+                // Stop any currently playing audio
+                if (this.currentAudio) {
+                    this.currentAudio.pause();
+                    this.currentAudio = null;
+                }
+
+                // Play audio from EveryAyah.com API - Alafasy recitation
+                const audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
+                
+                this.currentAudio = new Audio(audioUrl);
+                this.currentAudio.play().catch(error => {
+                    console.error('Failed to play audio:', error);
+                });
+            }
+
             updateHeader() {
                 const surahNum = this.getSurahForPage(this.currentPage);
                 const juzNum = this.getJuzForPage(this.currentPage);
@@ -535,7 +641,8 @@
                 this.juzNumber.textContent = `الجزء ${this.toEasternArabic(juzNum)}`;
             }
 
-            init() {
+            async init() {
+                await this.loadAyahPositions();
                 this.populateSurahDropdown();
                 this.loadPage(this.currentPage);
 
@@ -549,6 +656,13 @@
                 document.addEventListener('click', (e) => {
                     if (!this.surahName.contains(e.target) && !this.surahDropdown.contains(e.target)) {
                         this.surahDropdown.classList.remove('active');
+                    }
+                });
+
+                // Recalculate overlay positions on window resize
+                window.addEventListener('resize', () => {
+                    if (this.currentPage === 1) {
+                        this.createAyahOverlays();
                     }
                 });
 
@@ -637,6 +751,7 @@
                     this.currentPage = pageNumber;
                     this.updateHeader();
                     this.updateProgress();
+                    this.createAyahOverlays();
                     this.isLoading = false;
                 };
 

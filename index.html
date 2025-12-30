@@ -25,14 +25,13 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
             position: relative;
         }
 
         .page-container {
             width: 100%;
-            height: 100%;
+            height: calc(100% - 50px);
+            margin-top: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -50,25 +49,6 @@
             transition: opacity 0.3s ease;
         }
 
-        .page-number {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #000000;
-            font-size: 16px;
-            font-weight: 600;
-            text-align: center;
-            z-index: 5;
-            pointer-events: none;
-        }
-
-        @media (max-width: 768px) {
-            .page-number {
-                bottom: 15px;
-                font-size: 14px;
-            }
-        }
 
         .loading {
             opacity: 0.5;
@@ -236,18 +216,191 @@
             }
         }
 
+        /* Header Bar */
+        .header-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #f1e6e6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 20;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .header-section.right {
+            justify-content: flex-end;
+        }
+
+        .header-section.center {
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+
+        .header-section.left {
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .header-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: 500;
+            direction: rtl;
+            font-family: 'Arial', 'Tahoma', sans-serif;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .header-text:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .surah-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            min-width: 220px;
+            margin-top: 5px;
+            direction: rtl;
+        }
+
+        .surah-dropdown.active {
+            display: block;
+        }
+
+        .surah-dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            direction: rtl;
+            text-align: right;
+            transition: background 0.2s;
+        }
+
+        .surah-dropdown-item:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .surah-dropdown-item:last-child {
+            border-bottom: none;
+        }
+
+        .surah-item-number {
+            color: #666;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .surah-item-name {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .header-number {
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            direction: rtl;
+            font-family: 'Arial', 'Tahoma', sans-serif;
+        }
+
+        .header-arrow {
+            color: #333;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+            padding: 5px 10px;
+            transition: opacity 0.2s;
+        }
+
+        .header-arrow:hover {
+            opacity: 0.7;
+        }
+
+        .header-arrow:active {
+            opacity: 0.5;
+        }
+
+        @media (max-width: 768px) {
+            .header-bar {
+                height: 45px;
+                padding: 0 15px;
+            }
+
+            .page-container {
+                height: calc(100% - 45px);
+                margin-top: 45px;
+            }
+
+            .header-text {
+                font-size: 14px;
+            }
+
+            .header-number {
+                font-size: 16px;
+            }
+
+            .header-arrow {
+                font-size: 18px;
+                padding: 5px 8px;
+            }
+
+            .surah-dropdown {
+                min-width: 180px;
+                max-height: 300px;
+            }
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Header Bar -->
+        <div class="header-bar">
+            <div class="header-section left">
+                <span class="header-text" id="surahName">سورة الفاتحة</span>
+                <div class="surah-dropdown" id="surahDropdown"></div>
+            </div>
+            <div class="header-section center">
+                <span class="header-number" id="pageNumberHeader">١</span>
+            </div>
+            <div class="header-section right">
+                <span class="header-text" id="juzNumber">الجزء ١</span>
+            </div>
+        </div>
+        
         <div class="swipe-hint"></div>
         <div class="progress-bar" id="progressBar"></div>
         <div class="page-container" id="pageContainer">
             <img id="pageImage" class="page-image" src="" alt="Page">
-            <div class="page-number" id="pageNumber">1</div>
         </div>
     </div>
 
+    <script src="quran-data.js"></script>
     <script>
         class QuranPageViewer {
             constructor() {
@@ -261,13 +414,116 @@
                 this.pageImage = document.getElementById('pageImage');
                 this.progressBar = document.getElementById('progressBar');
                 this.pageContainer = document.getElementById('pageContainer');
-                this.pageNumber = document.getElementById('pageNumber');
+                this.surahName = document.getElementById('surahName');
+                this.pageNumberHeader = document.getElementById('pageNumberHeader');
+                this.juzNumber = document.getElementById('juzNumber');
+                this.surahDropdown = document.getElementById('surahDropdown');
 
                 this.init();
             }
 
+            toEasternArabic(num) {
+                const easternArabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                return num.toString().split('').map(digit => easternArabic[parseInt(digit)]).join('');
+            }
+
+            getSurahForPage(page) {
+                if (page >= 1 && page <= 604 && QuranData.Page[page]) {
+                    return QuranData.Page[page][0];
+                }
+                return 1;
+            }
+
+            getJuzForPage(page) {
+                // Find which juz this page belongs to
+                if (page >= 1 && page <= 604 && QuranData.Page[page]) {
+                    const pageSurah = QuranData.Page[page][0];
+                    const pageAyah = QuranData.Page[page][1];
+                    
+                    // Find the juz that contains this surah/ayah
+                    for (let juz = 30; juz >= 1; juz--) {
+                        if (QuranData.Juz[juz]) {
+                            const juzSurah = QuranData.Juz[juz][0];
+                            const juzAyah = QuranData.Juz[juz][1];
+                            
+                            if (pageSurah > juzSurah || 
+                                (pageSurah === juzSurah && pageAyah >= juzAyah)) {
+                                return juz;
+                            }
+                        }
+                    }
+                }
+                return 1;
+            }
+
+            populateSurahDropdown() {
+                if (!QuranData.Sura) return;
+
+                this.surahDropdown.innerHTML = '';
+                
+                for (let i = 1; i <= 114; i++) {
+                    if (QuranData.Sura[i]) {
+                        const surahArabicName = QuranData.Sura[i][4];
+                        const item = document.createElement('div');
+                        item.className = 'surah-dropdown-item';
+                        item.innerHTML = `
+                            <span class="surah-item-name">${surahArabicName}</span>
+                            <span class="surah-item-number">${this.toEasternArabic(i)}</span>
+                        `;
+                        
+                        item.addEventListener('click', () => {
+                            this.goToSurah(i);
+                            this.surahDropdown.classList.remove('active');
+                        });
+                        
+                        this.surahDropdown.appendChild(item);
+                    }
+                }
+            }
+
+            goToSurah(surahNumber) {
+                // Find the first page that starts with this surah
+                for (let page = 1; page <= 604; page++) {
+                    if (QuranData.Page[page] && QuranData.Page[page][0] === surahNumber) {
+                        this.loadPage(page);
+                        return;
+                    }
+                }
+            }
+
+            updateHeader() {
+                const surahNum = this.getSurahForPage(this.currentPage);
+                const juzNum = this.getJuzForPage(this.currentPage);
+                
+                // Get surah name in Arabic
+                if (QuranData.Sura && QuranData.Sura[surahNum]) {
+                    const surahArabicName = QuranData.Sura[surahNum][4];
+                    this.surahName.textContent = `سورة ${surahArabicName}`;
+                }
+                
+                // Update page number in Eastern Arabic
+                this.pageNumberHeader.textContent = this.toEasternArabic(this.currentPage);
+                
+                // Update juz number in Eastern Arabic
+                this.juzNumber.textContent = `الجزء ${this.toEasternArabic(juzNum)}`;
+            }
+
             init() {
+                this.populateSurahDropdown();
                 this.loadPage(this.currentPage);
+
+                // Surah name click to show dropdown
+                this.surahName.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.surahDropdown.classList.toggle('active');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!this.surahName.contains(e.target) && !this.surahDropdown.contains(e.target)) {
+                        this.surahDropdown.classList.remove('active');
+                    }
+                });
 
                 // Touch events for swiping
                 this.pageContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
@@ -352,7 +608,7 @@
                     this.pageImage.src = imagePath;
                     this.pageImage.classList.remove('loading');
                     this.currentPage = pageNumber;
-                    this.pageNumber.textContent = pageNumber;
+                    this.updateHeader();
                     this.updateProgress();
                     this.isLoading = false;
                 };

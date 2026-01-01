@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Pages Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f1e8;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        * {
+            touch-action: manipulation;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .page-container {
+            width: 100%;
+            height: calc(100% - 50px);
+            margin-top: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-image {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            transition: opacity 0.3s ease;
+        }
+
+        .ayah-overlay-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .ayah-highlight {
+            position: absolute;
+            background: transparent;
+            border: none;
+            pointer-events: all;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .ayah-highlight.active {
+            background: rgba(173, 216, 230, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .ayah-highlight.active {
+                background: rgba(173, 216, 230, 0.5);
+            }
+        }
+
+
+        .loading {
+            opacity: 0.5;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 12px 24px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+        }
+
+        .page-info {
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            min-width: 80px;
+            text-align: center;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.2s ease;
+        }
+
+        .page-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .page-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            color: #000;
+            font-size: 16px;
+            font-weight: 500;
+            width: 60px;
+            text-align: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .page-input:focus {
+            background: white;
+        }
+
+        .go-button {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .go-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-button:active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .nav-button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            transition: width 0.3s ease;
+            z-index: 10;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                bottom: 10px;
+                padding: 10px 16px;
+                gap: 15px;
+            }
+
+            .page-info {
+                font-size: 14px;
+                min-width: 60px;
+            }
+
+            .page-input {
+                font-size: 14px;
+                width: 50px;
+            }
+
+            .go-button {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            .nav-button {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+        }
+
+        @media (orientation: landscape) and (max-height: 500px) {
+            .controls {
+                bottom: 5px;
+                padding: 8px 12px;
+            }
+
+            .page-info {
+                font-size: 12px;
+            }
+        }
+
+        /* Swipe indicator */
+        .swipe-hint {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            text-align: center;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        @media (min-width: 769px) {
+            .swipe-hint {
+                display: none;
+            }
+        }
+
+        /* Header Bar */
+        .header-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background: #f5f1e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 20;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .header-section.right {
+            justify-content: flex-end;
+        }
+
+        .header-section.center {
+            justify-content: center;
+            flex: 0 0 auto;
+        }
+
+        .header-section.left {
+            justify-content: flex-start;
+            position: relative;
+        }
+
+        .header-text {
+            color: #000;
+            font-size: 16px;
+            font-weight: 700;
+            direction: rtl;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .header-text:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .surah-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #F0EAD6;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            min-width: 200px;
+            margin-top: 4px;
+            direction: rtl;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .surah-dropdown.active {
+            display: block;
+        }
+
+        .surah-dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            direction: rtl;
+            text-align: right;
+            transition: background 0.15s;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+        }
+
+        .surah-dropdown-item:hover {
+            background: rgba(138, 154, 91, 0.1);
+        }
+
+        .surah-item-number {
+            color: #8A9A5B;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+
+        .surah-item-name {
+            color: #333;
+            font-weight: 400;
+            font-size: 14px;
+        }
+
+        .header-number {
+            color: #000;
+            font-size: 18px;
+            font-weight: 800;
+            direction: rtl;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+        }
+
+        .header-arrow {
+            color: #333;
+            font-size: 20px;
+            cursor: pointer;
+            user-select: none;
+            padding: 5px 10px;
+            transition: opacity 0.2s;
+        }
+
+        .header-arrow:hover {
+            opacity: 0.7;
+        }
+
+        .header-arrow:active {
+            opacity: 0.5;
+        }
+
+        .header-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.15);
+            margin: 0 12px;
+        }
+
+        .header-bookmark-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            margin-left: 8px;
+            cursor: pointer;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+            touch-action: manipulation;
+        }
+
+        .header-bookmark-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+        }
+
+        .header-bookmark-btn.active {
+            color: #e57373;
+        }
+
+        .header-bookmark-btn.active svg {
+            fill: #e57373;
+            stroke: #e57373;
+        }
+
+        .header-bookmark-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: all 0.2s;
+        }
+
+        @media (max-width: 768px) {
+            .header-bar {
+                height: 45px;
+                padding: 0 15px;
+            }
+
+            .page-container {
+                height: calc(100% - 45px);
+                margin-top: 45px;
+                align-items: flex-start;
+                padding-top: 20px;
+            }
+
+            .page-image {
+                transform: translateY(-10px);
+            }
+
+            .header-text {
+                font-size: 14px;
+            }
+
+            .header-number {
+                font-size: 16px;
+            }
+
+            .header-arrow {
+                font-size: 18px;
+                padding: 5px 8px;
+            }
+
+            .surah-dropdown {
+                min-width: 160px;
+                max-height: 300px;
+            }
+
+            .surah-dropdown-item {
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }
+
+        /* Floating Navigation Bar */
+        :root {
+            --c-bg: #f5f1e8;
+            --c-txt: #9FA8DA;
+            --c-i: #8A9A5B;
+            --c-btn: #6B7A4A;
+        }
+
+        .main-nav {
+            display: flex;
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            font-size: 1rem;
+        }
+
+        .nav-part {
+            display: flex;
+            margin-left: .5rem;
+            background: #F0EAD6;
+            border-radius: 3.4em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            margin: 0;
+            padding: .2em;
+            background: #F0EAD6;
+            border-radius: 3.4em;
+            -webkit-box-shadow: 0 .1em .3em rgba(0,0,0,.1);
+            box-shadow: 0 .1em .3em rgba(0,0,0,.1);
+        }
+
+        .nav-buttons li {
+            margin: .2em;
+            list-style: none;
+        }
+
+        .nav-buttons li a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 2.6em;
+            height: 2.6em;
+            background: #F0EAD6;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .nav-buttons li a:hover {
+            background: var(--c-btn);
+            -webkit-box-shadow: 0 .1em .3em rgba(0,0,0,.25);
+            box-shadow: 0 .1em .3em rgba(0,0,0,.25);
+        }
+
+        .nav-buttons li a:active {
+            -webkit-transform: scale(.95);
+            transform: scale(.95);
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+
+        .nav-icon {
+            fill: var(--c-i);
+            width: 24px;
+            height: 24px;
+        }
+
+        .nav-buttons li a:hover .nav-icon {
+            fill: #FFFFFF;
+        }
+
+        .nav-info {
+            display: none;
+        }
+
+        .nav-info > span {
+            display: none;
+        }
+
+        /* Extra Small Devices (phones, less than 360px) */
+        @media screen and (max-width: 359px) {
+            .main-nav {
+                bottom: 1.5rem;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                font-size: 0.75rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.2em;
+                height: 2.2em;
+            }
+
+            .nav-icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            .nav-part {
+                margin-left: 0.3rem;
+            }
+
+            .nav-buttons {
+                padding: 0.15em;
+            }
+
+            .nav-buttons li {
+                margin: 0.15em;
+            }
+        }
+
+        /* Small Devices (phones, 360px to 480px) */
+        @media screen and (min-width: 360px) and (max-width: 480px) {
+            .main-nav {
+                bottom: 1.8rem;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                font-size: 0.85rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.4em;
+                height: 2.4em;
+            }
+
+            .nav-icon {
+                width: 22px;
+                height: 22px;
+            }
+
+            .nav-part {
+                margin-left: 0.4rem;
+            }
+        }
+
+        /* Medium Devices (tablets, 481px to 768px) */
+        @media screen and (min-width: 481px) and (max-width: 768px) {
+            .main-nav {
+                bottom: 2rem;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                font-size: 0.95rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.5em;
+                height: 2.5em;
+            }
+
+            .nav-icon {
+                width: 23px;
+                height: 23px;
+            }
+        }
+
+        /* Landscape Orientation for Mobile */
+        @media screen and (max-width: 768px) and (orientation: landscape) {
+            .main-nav {
+                bottom: 1rem;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                font-size: 0.8rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.2em;
+                height: 2.2em;
+            }
+
+            .nav-icon {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+        /* Large Devices (tablets landscape, 769px to 919px) */
+        @media screen and (min-width: 769px) and (max-width: 919px) {
+            .main-nav {
+                bottom: 1rem;
+                right: 1rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Desktop (920px and up) */
+        @media screen and (min-width: 920px) {
+            .main-nav {
+                bottom: auto;
+                top: 1em;
+                right: 1em;
+                font-size: 1rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.6em;
+                height: 2.6em;
+            }
+
+            .nav-icon {
+                width: 24px;
+                height: 24px;
+            }
+        }
+
+        /* Large Desktop (1200px and up) */
+        @media screen and (min-width: 1200px) {
+            .main-nav {
+                top: 1.5em;
+                right: 1.5em;
+                font-size: 1.1rem;
+            }
+
+            .nav-buttons li a {
+                width: 2.8em;
+                height: 2.8em;
+            }
+
+            .nav-icon {
+                width: 26px;
+                height: 26px;
+            }
+        }
+
+        /* Extra Large Desktop (1600px and up) */
+        @media screen and (min-width: 1600px) {
+            .main-nav {
+                top: 2em;
+                right: 2em;
+                font-size: 1.2rem;
+            }
+
+            .nav-buttons li a {
+                width: 3em;
+                height: 3em;
+            }
+
+            .nav-icon {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        /* Hide nav info on very small screens to save space */
+        @media screen and (max-width: 480px) {
+            .nav-info {
+                display: none;
+            }
+        }
+
+        /* Bookmark Page */
+        .bookmark-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #F0EAD6;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .bookmark-page.active {
+            display: flex;
+        }
+
+        .bookmark-page.active ~ .container {
+            display: none;
+        }
+
+        .bookmark-content {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bookmark-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F0EAD6;
+        }
+
+        .bookmark-header h3 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+            font-weight: 600;
+            direction: rtl;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+        }
+
+        .bookmark-close {
+            background: rgba(138, 154, 91, 0.1);
+            border: none;
+            cursor: pointer;
+            color: #333;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+        }
+
+        .bookmark-close:hover {
+            background: rgba(138, 154, 91, 0.2);
+        }
+
+        .bookmark-close svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .bookmark-list {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .bookmark-item {
+            padding: 12px 16px;
+            margin: 4px 0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+            direction: rtl;
+        }
+
+        .bookmark-item:hover {
+            background: rgba(138, 154, 91, 0.1);
+        }
+
+        .bookmark-item-info {
+            flex: 1;
+        }
+
+        .bookmark-item-name {
+            font-weight: 500;
+            color: #333;
+            font-family: 'Noto Naskh Arabic', 'Amiri', 'Arial', 'Tahoma', sans-serif;
+            margin-bottom: 4px;
+        }
+
+        .bookmark-item-page {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .bookmark-item-remove {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .bookmark-item-remove:hover {
+            color: #e57373;
+            background: rgba(229, 115, 115, 0.1);
+        }
+
+        .bookmark-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: #999;
+            direction: rtl;
+        }
+
+        @media (max-width: 768px) {
+            .bookmark-header {
+                padding: 16px;
+            }
+
+            .bookmark-header h3 {
+                font-size: 20px;
+            }
+
+            .bookmark-list {
+                padding: 15px;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-buttons li a {
+                min-width: 44px;
+                min-height: 44px;
+            }
+
+            .nav-buttons li a:active {
+                background: var(--c-btn);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Bar -->
+        <div class="header-bar">
+            <div class="header-section left">
+                <span class="header-text" id="surahName">سورة الفاتحة</span>
+                <span class="header-divider"></span>
+                <div class="surah-dropdown" id="surahDropdown"></div>
+            </div>
+            <div class="header-section center">
+                <span class="header-number" id="pageNumberHeader">١</span>
+            </div>
+            <div class="header-section right">
+                <span class="header-divider"></span>
+                <span class="header-text" id="juzNumber">الجزء ١</span>
+                <button class="header-bookmark-btn" id="headerBookmarkBtn" title="Bookmark this page">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="swipe-hint"></div>
+        <div class="progress-bar" id="progressBar"></div>
+        <div class="page-container" id="pageContainer">
+            <img id="pageImage" class="page-image" src="" alt="Page">
+            <div class="ayah-overlay-container" id="ayahOverlayContainer"></div>
+        </div>
+    </div>
+
+    <!-- Floating Navigation Bar -->
+    <nav class="main-nav">
+        <div class="nav-part">
+            <!-- Nav info -->
+            <div class="nav-info">
+                <span>{...}</span>
+            </div>
+
+            <!-- Nav buttons -->
+            <ul class="nav-buttons">
+                <li>
+                    <a href="#" data-tab="Book" id="navBook">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" data-tab="Translate" id="navTranslate">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" data-tab="Search" id="navSearch">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" data-tab="Favorite" id="navFavorite">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="nav-part">
+            <ul class="nav-buttons">
+                <li>
+                    <a href="#" id="play-pause" data-tab="Play/Stop">
+                        <span>
+                            <svg id="playIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon" style="display: block;">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            <svg id="pauseIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="nav-icon" style="display: none;">
+                                <path fill="none" d="M0 0h24v24H0V0z"/>
+                                <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                            </svg>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Bookmark Page -->
+    <div class="bookmark-page" id="bookmarkPage">
+        <div class="bookmark-content">
+            <div class="bookmark-header">
+                <h3>الصفحات المفضلة</h3>
+                <button class="bookmark-close" id="bookmarkClose" title="Back">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="bookmark-list" id="bookmarkList">
+                <!-- Bookmarked pages will be listed here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="quran-data.js"></script>
+    <script>
+        class QuranPageViewer {
+            constructor() {
+                this.currentPage = 1;
+                this.totalPages = 604;
+                this.touchStartX = 0;
+                this.touchEndX = 0;
+                this.minSwipeDistance = 50;
+                this.isLoading = false;
+
+                this.pageImage = document.getElementById('pageImage');
+                this.progressBar = document.getElementById('progressBar');
+                this.pageContainer = document.getElementById('pageContainer');
+                this.surahName = document.getElementById('surahName');
+                this.pageNumberHeader = document.getElementById('pageNumberHeader');
+                this.juzNumber = document.getElementById('juzNumber');
+                this.surahDropdown = document.getElementById('surahDropdown');
+                this.ayahOverlayContainer = document.getElementById('ayahOverlayContainer');
+                this.ayahPositions = null;
+                this.currentAudio = null;
+                this.currentPlayingSurah = null;
+                this.currentPlayingAyah = null;
+                this.currentHighlightedOverlays = []; // Track highlighted overlays
+                this.ayahOverlays = {}; // Store overlays by surah:ayah key
+
+                this.init();
+            }
+
+            toEasternArabic(num) {
+                const easternArabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+                return num.toString().split('').map(digit => easternArabic[parseInt(digit)]).join('');
+            }
+
+            getSurahForPage(page) {
+                if (page >= 1 && page <= 604 && QuranData.Page[page]) {
+                    return QuranData.Page[page][0];
+                }
+                return 1;
+            }
+
+            getJuzForPage(page) {
+                // Find which juz this page belongs to
+                if (page >= 1 && page <= 604 && QuranData.Page[page]) {
+                    const pageSurah = QuranData.Page[page][0];
+                    const pageAyah = QuranData.Page[page][1];
+                    
+                    // Find the juz that contains this surah/ayah
+                    for (let juz = 30; juz >= 1; juz--) {
+                        if (QuranData.Juz[juz]) {
+                            const juzSurah = QuranData.Juz[juz][0];
+                            const juzAyah = QuranData.Juz[juz][1];
+                            
+                            if (pageSurah > juzSurah || 
+                                (pageSurah === juzSurah && pageAyah >= juzAyah)) {
+                                return juz;
+                            }
+                        }
+                    }
+                }
+                return 1;
+            }
+
+            populateSurahDropdown() {
+                if (!QuranData.Sura) return;
+
+                this.surahDropdown.innerHTML = '';
+                
+                for (let i = 1; i <= 114; i++) {
+                    if (QuranData.Sura[i]) {
+                        const surahArabicName = QuranData.Sura[i][4];
+                        const item = document.createElement('div');
+                        item.className = 'surah-dropdown-item';
+                        item.innerHTML = `
+                            <span class="surah-item-name">${surahArabicName}</span>
+                            <span class="surah-item-number">${this.toEasternArabic(i)}</span>
+                        `;
+                        
+                        item.addEventListener('click', () => {
+                            this.goToSurah(i);
+                            this.surahDropdown.classList.remove('active');
+                        });
+                        
+                        this.surahDropdown.appendChild(item);
+                    }
+                }
+            }
+
+            goToSurah(surahNumber) {
+                // Find the first page that contains this surah
+                for (let page = 1; page <= 604; page++) {
+                    if (QuranData.Page[page]) {
+                        const pageSurah = QuranData.Page[page][0];
+                        
+                        // Check if this page starts with the surah
+                        if (pageSurah === surahNumber) {
+                            this.loadPage(page);
+                            return;
+                        }
+                        
+                        // Check if this page contains the surah (page starts with lower surah number)
+                        // and next page starts with higher surah number or doesn't exist
+                        if (pageSurah < surahNumber) {
+                            const nextPage = page + 1;
+                            if (nextPage > 604) {
+                                // Last page - contains the surah
+                                this.loadPage(page);
+                                return;
+                            }
+                            
+                            if (QuranData.Page[nextPage] && QuranData.Page[nextPage][0] > surahNumber) {
+                                // Next page starts with higher surah, so current page contains our surah
+                                this.loadPage(page);
+                                return;
+                            }
+                        }
+                    }
+                }
+                
+                // Fallback: if not found, go to last page (for surah 114)
+                if (surahNumber >= 112) {
+                    this.loadPage(604);
+                }
+            }
+
+            async loadAyahPositions() {
+                try {
+                    const response = await fetch('ayah_position.json');
+                    const data = await response.json();
+                    this.ayahPositions = data;
+                } catch (error) {
+                    console.error('Failed to load ayah positions:', error);
+                    this.ayahPositions = null;
+                }
+            }
+
+            createAyahOverlays() {
+                // Clear existing overlays
+                this.ayahOverlayContainer.innerHTML = '';
+                this.ayahOverlays = {}; // Reset overlay references
+                this.clearHighlights(); // Clear any existing highlights
+
+                // Find page data from array
+                if (!this.ayahPositions || !Array.isArray(this.ayahPositions)) {
+                    return;
+                }
+
+                const pageData = this.ayahPositions.find(p => p.page === this.currentPage);
+                if (!pageData) {
+                    return;
+                }
+
+                // Get surah number for current page
+                const surahNumber = pageData.surah || this.getSurahForPage(this.currentPage);
+
+                // Wait for image to be fully rendered
+                setTimeout(() => {
+                    const imgRect = this.pageImage.getBoundingClientRect();
+                    const containerRect = this.pageContainer.getBoundingClientRect();
+                    
+                    // Get actual image dimensions
+                    const img = this.pageImage;
+                    const naturalWidth = img.naturalWidth || img.width;
+                    const naturalHeight = img.naturalHeight || img.height;
+                    
+                    // Reference image dimensions (from the JSON coordinates)
+                    // Assuming the JSON coordinates are based on the original image size
+                    const refWidth = naturalWidth;
+                    const refHeight = naturalHeight;
+                    
+                    // Calculate scale factors based on displayed size vs natural size
+                    const scaleX = imgRect.width / refWidth;
+                    const scaleY = imgRect.height / refHeight;
+                    
+                    // Calculate offset (image is centered in container)
+                    const offsetX = imgRect.left - containerRect.left;
+                    const offsetY = imgRect.top - containerRect.top;
+
+                    // Create overlays for each ayah
+                    pageData.ayahs.forEach(ayah => {
+                        const overlayKey = `${surahNumber}:${ayah.aya}`;
+                        if (!this.ayahOverlays[overlayKey]) {
+                            this.ayahOverlays[overlayKey] = [];
+                        }
+                        
+                        ayah.parts.forEach((part, partIndex) => {
+                            const overlay = document.createElement('div');
+                            overlay.className = 'ayah-highlight';
+                            
+                            // Scale and position the overlay
+                            overlay.style.left = `${offsetX + part.x * scaleX}px`;
+                            overlay.style.top = `${offsetY + part.y * scaleY}px`;
+                            overlay.style.width = `${part.w * scaleX}px`;
+                            overlay.style.height = `${part.h * scaleY}px`;
+                            
+                            // Store overlay reference
+                            this.ayahOverlays[overlayKey].push(overlay);
+                            
+                            // Function to play audio
+                            const playAudio = () => {
+                                this.playAyahAudio(surahNumber, ayah.aya);
+                            };
+                            
+                            // Add click handler for desktop
+                            overlay.addEventListener('click', playAudio);
+                            
+                            // Add touch handlers for mobile
+                            let touchStartTime = 0;
+                            let touchStartY = 0;
+                            
+                            overlay.addEventListener('touchstart', (e) => {
+                                touchStartTime = Date.now();
+                                touchStartY = e.touches[0].clientY;
+                                // Prevent swipe navigation when touching an ayah
+                                e.stopPropagation();
+                                // Immediately highlight on touch for better mobile feedback
+                                this.highlightAyah(surahNumber, ayah.aya);
+                            }, { passive: true });
+                            
+                            overlay.addEventListener('touchend', (e) => {
+                                const touchEndTime = Date.now();
+                                const touchDuration = touchEndTime - touchStartTime;
+                                const touchEndY = e.changedTouches[0].clientY;
+                                const verticalMovement = Math.abs(touchEndY - touchStartY);
+                                
+                                // Only play audio if it was a quick tap (not a swipe)
+                                // and vertical movement is minimal (to distinguish from scroll)
+                                if (touchDuration < 300 && verticalMovement < 10) {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    playAudio();
+                                }
+                            }, { passive: false });
+                            
+                            this.ayahOverlayContainer.appendChild(overlay);
+                        });
+                    });
+                }, 100);
+            }
+
+            clearHighlights() {
+                // Remove active class from all currently highlighted overlays
+                this.currentHighlightedOverlays.forEach(overlay => {
+                    overlay.classList.remove('active');
+                });
+                this.currentHighlightedOverlays = [];
+            }
+
+            highlightAyah(surahNumber, ayahNumber) {
+                // Clear previous highlights
+                this.clearHighlights();
+                
+                // Find overlays for this ayah
+                const overlayKey = `${surahNumber}:${ayahNumber}`;
+                const overlays = this.ayahOverlays[overlayKey];
+                
+                if (overlays && overlays.length > 0) {
+                    // Add active class to all parts of this ayah
+                    overlays.forEach(overlay => {
+                        overlay.classList.add('active');
+                        this.currentHighlightedOverlays.push(overlay);
+                    });
+                }
+            }
+
+            playAyahAudio(surahNumber, ayahNumber) {
+                // Check if the same ayah is already playing - if so, stop it
+                if (this.currentAudio && 
+                    this.currentPlayingSurah === surahNumber && 
+                    this.currentPlayingAyah === ayahNumber &&
+                    !this.currentAudio.paused) {
+                    this.currentAudio.pause();
+                    this.currentAudio = null;
+                    this.currentPlayingSurah = null;
+                    this.currentPlayingAyah = null;
+                    this.clearHighlights(); // Clear highlight when stopping
+                    this.updatePlayPauseIcon(false);
+                    return;
+                }
+
+                // Stop any currently playing audio
+                if (this.currentAudio) {
+                    this.currentAudio.pause();
+                    this.currentAudio = null;
+                    this.updatePlayPauseIcon(false);
+                }
+
+                // Highlight the clicked ayah
+                this.highlightAyah(surahNumber, ayahNumber);
+
+                // Play audio from EveryAyah.com API - Alafasy recitation
+                const audioUrl = `https://everyayah.com/data/Alafasy_128kbps/${String(surahNumber).padStart(3, '0')}${String(ayahNumber).padStart(3, '0')}.mp3`;
+                
+                this.currentAudio = new Audio(audioUrl);
+                this.currentPlayingSurah = surahNumber;
+                this.currentPlayingAyah = ayahNumber;
+                
+                // Clear tracking and highlights when audio ends
+                this.currentAudio.addEventListener('ended', () => {
+                    this.currentPlayingSurah = null;
+                    this.currentPlayingAyah = null;
+                    this.clearHighlights();
+                    this.updatePlayPauseIcon(false);
+                });
+
+                // Update icon when audio starts playing
+                this.currentAudio.addEventListener('play', () => {
+                    this.updatePlayPauseIcon(true);
+                });
+
+                // Update icon when audio is paused
+                this.currentAudio.addEventListener('pause', () => {
+                    this.updatePlayPauseIcon(false);
+                });
+                
+                this.currentAudio.play().catch(error => {
+                    console.error('Failed to play audio:', error);
+                    this.currentPlayingSurah = null;
+                    this.currentPlayingAyah = null;
+                    this.clearHighlights(); // Clear highlight on error
+                    this.updatePlayPauseIcon(false);
+                });
+            }
+
+            updateHeader() {
+                const surahNum = this.getSurahForPage(this.currentPage);
+                const juzNum = this.getJuzForPage(this.currentPage);
+                
+                // Get surah name in Arabic
+                if (QuranData.Sura && QuranData.Sura[surahNum]) {
+                    const surahArabicName = QuranData.Sura[surahNum][4];
+                    this.surahName.textContent = `سورة ${surahArabicName}`;
+                }
+                
+                // Update page number in Eastern Arabic
+                this.pageNumberHeader.textContent = this.toEasternArabic(this.currentPage);
+                
+                // Update juz number in Eastern Arabic
+                this.juzNumber.textContent = `الجزء ${this.toEasternArabic(juzNum)}`;
+                
+                // Update bookmark icon state
+                this.updateHeaderBookmarkIcon();
+            }
+
+            updateHeaderBookmarkIcon() {
+                const bookmarkBtn = document.getElementById('headerBookmarkBtn');
+                if (bookmarkBtn) {
+                    // Check if page is bookmarked
+                    const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                    if (bookmarks.includes(this.currentPage)) {
+                        bookmarkBtn.classList.add('active');
+                    } else {
+                        bookmarkBtn.classList.remove('active');
+                    }
+                }
+            }
+
+            renderBookmarks() {
+                const bookmarkList = document.getElementById('bookmarkList');
+                if (!bookmarkList) return;
+
+                const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                
+                if (bookmarks.length === 0) {
+                    bookmarkList.innerHTML = '<div class="bookmark-empty">لا توجد صفحات مفضلة</div>';
+                    return;
+                }
+
+                bookmarkList.innerHTML = bookmarks.map(pageNum => {
+                    const surahNum = this.getSurahForPage(pageNum);
+                    const surahName = QuranData.Sura && QuranData.Sura[surahNum] 
+                        ? QuranData.Sura[surahNum][4] 
+                        : `سورة ${surahNum}`;
+                    
+                    return `
+                        <div class="bookmark-item" data-page="${pageNum}">
+                            <div class="bookmark-item-info">
+                                <div class="bookmark-item-name">${surahName}</div>
+                                <div class="bookmark-item-page">الصفحة ${this.toEasternArabic(pageNum)}</div>
+                            </div>
+                            <button class="bookmark-item-remove" data-page="${pageNum}">&times;</button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers
+                bookmarkList.querySelectorAll('.bookmark-item').forEach(item => {
+                    const pageNum = parseInt(item.dataset.page);
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('bookmark-item-remove')) {
+                            this.loadPage(pageNum);
+                            this.closeBookmarkModal();
+                        }
+                    });
+                });
+
+                // Add remove handlers
+                bookmarkList.querySelectorAll('.bookmark-item-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const pageNum = parseInt(btn.dataset.page);
+                        const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                        const index = bookmarks.indexOf(pageNum);
+                        if (index > -1) {
+                            bookmarks.splice(index, 1);
+                            localStorage.setItem('quranBookmarks', JSON.stringify(bookmarks));
+                            this.renderBookmarks();
+                            this.updateHeaderBookmarkIcon();
+                        }
+                    });
+                });
+            }
+
+            openBookmarkModal() {
+                const bookmarkPage = document.getElementById('bookmarkPage');
+                const container = document.querySelector('.container');
+                if (bookmarkPage) {
+                    this.renderBookmarks();
+                    bookmarkPage.classList.add('active');
+                    if (container) {
+                        container.style.display = 'none';
+                    }
+                }
+            }
+
+            closeBookmarkModal() {
+                const bookmarkPage = document.getElementById('bookmarkPage');
+                const container = document.querySelector('.container');
+                if (bookmarkPage) {
+                    bookmarkPage.classList.remove('active');
+                    if (container) {
+                        container.style.display = 'flex';
+                    }
+                }
+            }
+
+            async init() {
+                await this.loadAyahPositions();
+                this.populateSurahDropdown();
+                this.loadPage(this.currentPage);
+
+                // Surah name click to show dropdown
+                this.surahName.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.surahDropdown.classList.toggle('active');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!this.surahName.contains(e.target) && !this.surahDropdown.contains(e.target)) {
+                        this.surahDropdown.classList.remove('active');
+                    }
+                });
+
+                // Header bookmark button
+                const headerBookmarkBtn = document.getElementById('headerBookmarkBtn');
+                if (headerBookmarkBtn) {
+                    headerBookmarkBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Simple bookmark toggle - if bookmark methods exist, use them
+                        if (typeof this.toggleBookmark === 'function') {
+                            this.toggleBookmark(this.currentPage);
+                            this.updateHeaderBookmarkIcon();
+                        } else {
+                            // Fallback: store in localStorage
+                            const bookmarks = JSON.parse(localStorage.getItem('quranBookmarks') || '[]');
+                            const index = bookmarks.indexOf(this.currentPage);
+                            if (index > -1) {
+                                bookmarks.splice(index, 1);
+                                headerBookmarkBtn.classList.remove('active');
+                            } else {
+                                bookmarks.push(this.currentPage);
+                                bookmarks.sort((a, b) => a - b);
+                                headerBookmarkBtn.classList.add('active');
+                            }
+                            localStorage.setItem('quranBookmarks', JSON.stringify(bookmarks));
+                        }
+                    });
+                }
+
+                // Recalculate overlay positions on window resize
+                window.addEventListener('resize', () => {
+                    if (this.currentPage === 1) {
+                        this.createAyahOverlays();
+                    }
+                });
+
+                // Touch events for swiping
+                this.pageContainer.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+                this.pageContainer.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
+
+                // Keyboard navigation
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowLeft') {
+                        this.goToPreviousPage();
+                    } else if (e.key === 'ArrowRight') {
+                        this.goToNextPage();
+                    }
+                });
+
+                // Mouse drag support (for desktop)
+                let isDragging = false;
+                let startX = 0;
+
+                this.pageContainer.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    startX = e.clientX;
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    e.preventDefault();
+                });
+
+                document.addEventListener('mouseup', (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    const diffX = startX - e.clientX;
+                    if (Math.abs(diffX) > this.minSwipeDistance) {
+                        if (diffX < 0) {
+                            // Drag right - go forward (1->2->3...)
+                            this.goToNextPage();
+                        } else {
+                            // Drag left - go backward (1->604->603...)
+                            this.goToPreviousPage();
+                        }
+                    }
+                });
+
+                this.updateProgress();
+
+                // Close bookmark modal with Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeBookmarkModal();
+                    }
+                });
+            }
+
+            handleTouchStart(e) {
+                // Check if touch started on an ayah overlay
+                const target = e.target;
+                if (target && target.classList.contains('ayah-highlight')) {
+                    // Don't track swipe if touching an ayah
+                    this.touchStartX = null;
+                    return;
+                }
+                this.touchStartX = e.changedTouches[0].screenX;
+            }
+
+            handleTouchEnd(e) {
+                // Check if touch ended on an ayah overlay
+                const target = e.target;
+                if (target && target.classList.contains('ayah-highlight')) {
+                    // Don't trigger swipe if touching an ayah
+                    return;
+                }
+                
+                if (this.touchStartX === null) {
+                    return;
+                }
+                
+                this.touchEndX = e.changedTouches[0].screenX;
+                this.handleSwipe();
+            }
+
+            handleSwipe() {
+                const swipeDistance = this.touchStartX - this.touchEndX;
+
+                if (Math.abs(swipeDistance) > this.minSwipeDistance) {
+                    if (swipeDistance < 0) {
+                        // Swipe right - go forward (1->2->3...)
+                        this.goToNextPage();
+                    } else {
+                        // Swipe left - go backward (1->604->603...)
+                        this.goToPreviousPage();
+                    }
+                }
+            }
+
+            loadPage(pageNumber) {
+                if (this.isLoading || pageNumber < 1 || pageNumber > this.totalPages) {
+                    return;
+                }
+
+                this.isLoading = true;
+                this.pageImage.classList.add('loading');
+
+                const imagePath = `images/${String(pageNumber).padStart(3, '0')}.svg`;
+                const img = new Image();
+
+                img.onload = () => {
+                    this.pageImage.src = imagePath;
+                    this.pageImage.classList.remove('loading');
+                    this.currentPage = pageNumber;
+                    this.updateHeader();
+                    this.updateProgress();
+                    this.createAyahOverlays();
+                    this.isLoading = false;
+                };
+
+                img.onerror = () => {
+                    console.error(`Failed to load page ${pageNumber}`);
+                    this.pageImage.classList.remove('loading');
+                    this.isLoading = false;
+                };
+
+                img.src = imagePath;
+            }
+
+            goToNextPage() {
+                if (this.isLoading) return;
+                if (this.currentPage < this.totalPages) {
+                    this.loadPage(this.currentPage + 1);
+                } else {
+                    // Wrap around: from 604 to 1
+                    this.loadPage(1);
+                }
+            }
+
+            goToPreviousPage() {
+                if (this.isLoading) return;
+                if (this.currentPage > 1) {
+                    this.loadPage(this.currentPage - 1);
+                } else {
+                    // Wrap around: from 1 to 604
+                    this.loadPage(this.totalPages);
+                }
+            }
+
+            updateProgress() {
+                const progress = (this.currentPage / this.totalPages) * 100;
+                this.progressBar.style.width = `${progress}%`;
+            }
+
+            updatePlayPauseIcon(isPlaying) {
+                const playIcon = document.getElementById('playIcon');
+                const pauseIcon = document.getElementById('pauseIcon');
+                if (playIcon && pauseIcon) {
+                    if (isPlaying) {
+                        playIcon.style.display = 'none';
+                        pauseIcon.style.display = 'block';
+                    } else {
+                        playIcon.style.display = 'block';
+                        pauseIcon.style.display = 'none';
+                    }
+                }
+            }
+
+            togglePlayPause() {
+                if (this.currentAudio) {
+                    if (this.currentAudio.paused) {
+                        this.currentAudio.play();
+                        this.updatePlayPauseIcon(true);
+                    } else {
+                        this.currentAudio.pause();
+                        this.updatePlayPauseIcon(false);
+                    }
+                } else {
+                    // If no audio is playing, play the first ayah of current page
+                    const pageData = this.ayahPositions?.find(p => p.page === this.currentPage);
+                    if (pageData && pageData.ayahs && pageData.ayahs.length > 0) {
+                        const surahNumber = pageData.surah || this.getSurahForPage(this.currentPage);
+                        const firstAyah = pageData.ayahs[0].aya;
+                        this.playAyahAudio(surahNumber, firstAyah);
+                    }
+                }
+            }
+        }
+
+        // Initialize the viewer when the page loads
+        let quranViewer = null;
+        document.addEventListener('DOMContentLoaded', () => {
+            quranViewer = new QuranPageViewer();
+
+            // Floating Navigation Bar JavaScript
+            // Wait for jQuery to be available
+            if (typeof jQuery !== 'undefined') {
+                jQuery(document).ready(function($) {
+                    // Label animation removed - no hover text effect
+
+                    // Play/Pause toggle
+                    $("#play-pause").click(function(e){
+                        e.preventDefault();
+                        if (quranViewer) {
+                            quranViewer.togglePlayPause();
+                        }
+                    });
+
+                    // Other navigation buttons (placeholder for future functionality)
+                    $("#navBook").click(function(e){
+                        e.preventDefault();
+                        // Add book functionality here
+                    });
+
+                    $("#navTranslate").click(function(e){
+                        e.preventDefault();
+                        // Add translate functionality here
+                    });
+
+                    $("#navSearch").click(function(e){
+                        e.preventDefault();
+                        // Add search functionality here
+                    });
+
+                    $("#navFavorite").click(function(e){
+                        e.preventDefault();
+                        if (quranViewer) {
+                            quranViewer.openBookmarkModal();
+                        }
+                    });
+
+                    // Close bookmark modal
+                    $("#bookmarkClose").click(function(e){
+                        e.preventDefault();
+                        if (quranViewer) {
+                            quranViewer.closeBookmarkModal();
+                        }
+                    });
+
+                });
+            } else {
+                // Fallback if jQuery is not loaded - use vanilla JS
+                document.getElementById('play-pause')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (quranViewer) {
+                        quranViewer.togglePlayPause();
+                    }
+                });
+
+                // Bookmark button fallback
+                document.getElementById('navFavorite')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (quranViewer) {
+                        quranViewer.openBookmarkModal();
+                    }
+                });
+
+                // Close bookmark modal fallback
+                document.getElementById('bookmarkClose')?.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (quranViewer) {
+                        quranViewer.closeBookmarkModal();
+                    }
+                });
+
+            }
+        });
+    </script>
+</body>
+</html>
+

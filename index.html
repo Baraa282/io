@@ -1601,7 +1601,7 @@
                 this.isLoading = true;
                 this.pageImage.classList.add('loading');
 
-                const imagePath = `images/${String(pageNumber).padStart(3, '0')}.svg`;
+                const imagePath = `output/${String(pageNumber).padStart(3, '0')}.svg`;
                 const img = new Image();
 
                 img.onload = () => {
